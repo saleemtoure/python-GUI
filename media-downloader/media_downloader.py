@@ -1,21 +1,13 @@
-from asyncio import exceptions
 import os
-from re import S
-from pytube import YouTube as yt
-import pytube.exceptions as ptExceptions
+from pytube import YouTube
+from pytube.exceptions import *
 import tkinter as tk
-from tkinter import E, messagebox
+from tkinter import messagebox
 
 desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
 
-# video = yt("https://www.youtube.com/watch?v=-qu-txgwsiA")
 
-# print(video.streams.filter(file_extension="mp4", progressive=True))
-
-# video.streams.get_by_itag(22).download(output_path=desktop_path)
-
-
-class YoutubeGUI:
+class DownloaderGUI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.configure(bg="#a83434")
@@ -26,9 +18,6 @@ class YoutubeGUI:
         self.url_box.bind("<KeyPress>", self.shortcut)
         self.url_box.insert(0, "Paste your URL here")
         self.url_box.pack(padx=10, pady=10)
-        self.video = ""
-        self.video_title = self.video.title
-        self.video_itag = 0
 
         self.checkState = tk.StringVar(self.root, "Download Video (720p)")
         self.checkState.set("Video")
@@ -56,29 +45,29 @@ class YoutubeGUI:
         self.root.mainloop()
 
     def download(self):
-        # try:#!Catching error not working (trying to catch an exception if other text then url entered)
-        #     url = self.url_box.get()
-        # except ptExceptions.RegexMatchError:
-        #     print("URL Error. Try again")
-
         try:
-            video_url = self.url_box.get()
-        except ptExceptions.PytubeError as PE:
-            # if str(PE) == "{caller}: could not find match for {pattern}":
-            #     print("LØØl")
-            print(repr(PE))
-        else:
-            self.video = yt(video_url)
-            print(self.video.title)
-        # if len(self.url_box.get()) == 0 or self.url_box.get() == "Paste your URL here":
-        #     print("No URL inserted. Try again")
-        # else:
-        #     self.video = yt(self.url_box.get())
+            # video_url = self.url_box.get()
+            video_url = (
+                "https://www.youtube.com/watch?v=-qu-txgwsiA&ab_channel=ShowTimeNorge"
+            )
+            yt = YouTube(video_url)
 
-        # if self.checkState.get() == "Video":
-        #     print(f"Downloading video: '{self.video.title}'")
-        # else:
-        #     print(f"Downloading audio from video: '{self.video.title}'")
+            video_kvaliteter = list(yt.streams.filter(progressive=True))
+            lyd_kvaliteter = list(yt.streams.filter(only_audio=True))
+            print(video_kvaliteter)
+            print(lyd_kvaliteter)
+        except RegexMatchError:
+            print("Regex match error. Invalid URL.")
+        except VideoPrivate:
+            print("Video is private.")
+        except VideoRegionBlocked:
+            print("Video is blocked in your region.")
+        except VideoUnavailable:
+            print("Video is unavailable.")
+        except PytubeError as e:
+            print(f"A Pytube error occurred: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
     def shortcut(self, event):
         if event.state == 4 and event.keysym == "Return":
@@ -92,4 +81,4 @@ class YoutubeGUI:
         self.url_box.delete("1.0", tk.END)
 
 
-YoutubeGUI()
+DownloaderGUI()
