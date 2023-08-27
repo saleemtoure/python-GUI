@@ -2,7 +2,7 @@ from fileinput import filename
 import os
 import ffmpeg
 from pytube import YouTube
-from pytube.exceptions import *
+import pytube.exceptions as pte
 import tkinter as tk
 from tkinter import messagebox
 
@@ -63,15 +63,15 @@ def get_media(video_url, media_type, video_quality):
                     res="720p", mime_type="video/mp4", progressive=True
                 ).first().download()
 
-    except RegexMatchError:
+    except pte.RegexMatchError:
         print("Regex match error. Invalid URL.")
-    except VideoPrivate:
+    except pte.VideoPrivate:
         print("Video is private.")
-    except VideoRegionBlocked:
+    except pte.VideoRegionBlocked:
         print("Video is blocked in your region.")
-    except VideoUnavailable:
+    except pte.VideoUnavailable:
         print("Video is unavailable.")
-    except PytubeError as e:
+    except pte.PytubeError as e:
         print(f"A Pytube error occurred: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
