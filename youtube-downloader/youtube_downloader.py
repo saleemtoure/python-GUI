@@ -1,20 +1,17 @@
-from fileinput import filename
-from operator import le
 import os
-from re import L
 import ffmpeg
 from pytube import YouTube
 import pytube.exceptions as pte
+from moviepy.editor import AudioFileClip
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-
-desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
+from tkinter import ttk, messagebox
+import tkinter.filedialog
 
 
 class DownloaderGUI:
     def __init__(self):
         self.root = tk.Tk()
+        self.root.title("YouTube Downloader")
         self.root.configure(bg="#a83434")
         self.label = tk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
         self.label.pack(padx=10, pady=10)
@@ -53,15 +50,10 @@ class DownloaderGUI:
         self.download_button.pack(padx=10, pady=10)
 
         self.progress = tk.IntVar()
-        self.progress_bar = ttk.Progressbar(
-            self.root,
-            mode="determinate",
-            maximum=110,
-            length=150,
-            variable=self.progress,
+        self.progress_label = tk.Label(
+            self.root, fg="#000000", bg="#a83434", text=f"{0}%"
         )
-        self.progress_bar.pack(padx=10, pady=10)
-        self.progress.set(50)
+        self.progress_label.pack(padx=10, pady=10)
 
         self.root.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.root.mainloop()
@@ -78,24 +70,44 @@ class DownloaderGUI:
             return "Audio", None
 
     def download_media(self, video_url, media_type, video_quality):
+        out_path = tkinter.filedialog.askdirectory()
         try:
-            yt = YouTube(video_url)
+            yt = YouTube(video_url, on_progress_callback=self.on_progress)
             video_title = yt.title
 
             if media_type == "Audio":
-                print(yt.streams.filter(only_audio=True))
-                yt.streams.get_audio_only().download()
+                file = yt.streams.get_audio_only()
+                file.download(output_path=out_path)
+
+                audio_mp4_file = AudioFileClip(f"{out_path}/{file.title}.mp4")
+                audio_mp4_file.write_audiofile(f"{out_path}/{file.title}.mp3")
+
+                if os.path.exists(f"{out_path}/{file.title}.mp4"):
+                    os.remove(f"{out_path}/{file.title}.mp4")
+                    self.on_finish()
+                else:
+                    "Error when deleting converted files"
+
             elif video_quality == "720p":
-                yt.streams.filter(
+                yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                file = yt.streams.filter(
                     res="720p", mime_type="video/mp4", progressive=True
-                ).first().download()
+                ).first()
+                file.download(filename=f"{video_title}(720p).mp4")
+                self.on_finish()
+
             else:
                 yt.streams.get_audio_only().download(filename="audio.mp3")
                 audio = ffmpeg.input("audio.mp3")
                 if video_quality == "Highest":
-                    yt.streams.filter(adaptive=True).order_by(
-                        "resolution"
-                    ).desc().first().download(filename="video.mp4")
+                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                    file = (
+                        yt.streams.filter(adaptive=True)
+                        .order_by("resolution")
+                        .desc()
+                        .first()
+                    )
+                    file.download(filename="video.mp4")
 
                     video = ffmpeg.input("video.mp4")
                     ffmpeg.concat(video, audio, v=1, a=1).output(
@@ -105,15 +117,24 @@ class DownloaderGUI:
                     if os.path.exists("video.mp4") and os.path.exists("audio.mp3"):
                         os.remove("video.mp4")
                         os.remove("audio.mp3")
+                        self.on_finish()
                     else:
                         "Error when deleting merged files"
 
                 elif video_quality == "1080p":
-                    yt.streams.filter(
-                        res="1080p", mime_type="video/mp4", adaptive=True
-                    ).first().download(filename="video.mp4")
+                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                    file = (
+                        yt.streams.filter(
+                            res="1080p", mime_type="video/mp4", adaptive=True
+                        )
+                        .order_by("resolution")
+                        .desc()
+                        .first()
+                    )
+                    file.download(filename="video.mp4")
 
                     video = ffmpeg.input("video.mp4")
+
                     ffmpeg.concat(video, audio, v=1, a=1).output(
                         f"{video_title}(1080p).mp4"
                     ).run(overwrite_output=True)
@@ -121,13 +142,9 @@ class DownloaderGUI:
                     if os.path.exists("video.mp4") and os.path.exists("audio.mp3"):
                         os.remove("video.mp4")
                         os.remove("audio.mp3")
+                        self.on_finish()
                     else:
                         "Error when deleting merged files"
-
-                elif video_quality == "720p":
-                    yt.streams.filter(
-                        res="720p", mime_type="video/mp4", progressive=True
-                    ).first().download()
 
         except pte.RegexMatchError:
             print("Regex match error. Invalid URL.")
@@ -142,6 +159,20 @@ class DownloaderGUI:
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
+    def on_progress(self, stream, chunk, bytes_remaining):
+        total_size = stream.filesize
+        bytes_downloaded = total_size - bytes_remaining
+        percentage = bytes_downloaded / total_size * 100
+        per = str(int(percentage))
+        self.progress_label.configure(text=f"{per}%")
+        if bytes_remaining == 0:
+            self.progress_label.configure(text="Completed. Now converting")
+        self.progress_label.update()
+
+    def on_finish(self):
+        self.progress_label.configure(text="Finished downloading and converting!")
+        lambda: self.save_file()
+
     def shortcut(self, event):
         if event.state == 4 and event.keysym == "Return":
             self.download_media
@@ -149,9 +180,6 @@ class DownloaderGUI:
     def onClosing(self):
         if messagebox.askyesno(title="Quit?", message="Do you really want to quit"):
             self.root.destroy()
-
-    def clear(self):
-        self.url_box.delete("1.0", tk.END)
 
 
 DownloaderGUI()
