@@ -1,5 +1,3 @@
-from email.mime import image
-from logging import root
 import os
 import ffmpeg
 from pytube import YouTube
@@ -10,6 +8,7 @@ from tkinter import ttk, messagebox
 import tkinter.filedialog
 from PIL import ImageTk, Image
 from urllib.request import urlopen
+import shutil
 
 
 class DownloaderGUI:
@@ -77,21 +76,16 @@ class DownloaderGUI:
             return "Audio", None
 
     def download_media(self, video_url, media_type, video_quality):
-        out_path = tkinter.filedialog.askdirectory()
+        # out_path = tkinter.filedialog.askdirectory()
 
         try:
             yt = YouTube(video_url, on_progress_callback=self.on_progress)
             video_title = yt.title
             self.thumbnail_url = yt.thumbnail_url
-            u = urlopen(self.thumbnail_url)
-            raw_data = u.read()
-            u.close()
-            thumbnail = ImageTk.PhotoImage(data=raw_data)
-            thumbnail = Image.open(thumbnail).resize((400, 225))
-            self.image_label = tk.Label(
-                self.root, image=thumbnail, width=400, height=225
-            )
-            self.image_label.image = thumbnail
+            data = urlopen(self.thumbnail_url)
+            thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
+            img = ImageTk.PhotoImage(thumbnail)
+            self.image_label = tk.Label(self.root, image=img, bg=self.red_color)
             self.image_label.pack(pady=10)
 
             if media_type == "Audio":
@@ -116,33 +110,32 @@ class DownloaderGUI:
                 self.on_finish()
 
             else:
-                yt.streams.get_audio_only().download(
-                    filename="audio.mp3", output_path=out_path
-                )
-                audio = ffmpeg.input(f"{out_path}/audio.mp3")
+                yt.streams.get_audio_only().download(filename="audio.mp3")
+                audio = ffmpeg.input(f"audio.mp3")
                 if video_quality == "Highest":
-                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
-                    file = (
-                        yt.streams.filter(adaptive=True)
-                        .order_by("resolution")
-                        .desc()
-                        .first()
-                    )
-                    file.download(filename="video.mp4", output_path=out_path)
+                    pass
+                    # yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                    # file = (
+                    #     yt.streams.filter(adaptive=True)
+                    #     .order_by("resolution")
+                    #     .desc()
+                    #     .first()
+                    # )
+                    # file.download(filename="video.mp4")
 
-                    video = ffmpeg.input(f"{out_path}/video.mp4")
-                    ffmpeg.concat(video, audio, v=1, a=1).output(
-                        f"{video_title}({yt.streams.filter(adaptive=True).order_by('resolution').desc().first().resolution}).mp4"
-                    ).run(overwrite_output=True)
+                    # video = ffmpeg.input(f"video.mp4")
+                    # ffmpeg.concat(video, audio, v=1, a=1).output(
+                    #     f"{video_title}({yt.streams.filter(adaptive=True).order_by('resolution').desc().first().resolution}).mp4"
+                    # ).run(overwrite_output=True)
 
-                    if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
-                        f"{out_path}/audio.mp3"
-                    ):
-                        os.remove(f"{out_path}/video.mp4")
-                        os.remove(f"{out_path}/audio.mp3")
-                        self.on_finish()
-                    else:
-                        "Error when deleting merged files"
+                    # if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
+                    #     f"audio.mp3"
+                    # ):
+                    #     os.remove(f"{out_path}/video.mp4")
+                    #     os.remove(f"{out_path}/audio.mp3")
+                    #     self.on_finish()
+                    # else:
+                    #     "Error when deleting merged files"
 
                 elif video_quality == "1080p":
                     yt = YouTube(video_url, on_progress_callback=self.on_progress)
@@ -154,22 +147,22 @@ class DownloaderGUI:
                         .desc()
                         .first()
                     )
-                    file.download(filename="video.mp4", output_path=out_path)
+                    file.download(filename="video.mp4")
 
-                    video = ffmpeg.input(f"{out_path}/video.mp4")
+                    video = ffmpeg.input("video.mp4")
 
                     ffmpeg.concat(video, audio, v=1, a=1).output(
                         f"{video_title}(1080p).mp4"
                     ).run(overwrite_output=True)
 
-                    if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
-                        f"{out_path}/audio.mp3"
-                    ):
-                        os.remove(f"{out_path}/video.mp4")
-                        os.remove(f"{out_path}/audio.mp3")
-                        self.on_finish()
-                    else:
-                        "Error when deleting merged files"
+                    # if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
+                    #     f"{out_path}/audio.mp3"
+                    # ):
+                    #     os.remove(f"{out_path}/video.mp4")
+                    #     os.remove(f"{out_path}/audio.mp3")
+                    #     self.on_finish()
+                    # else:
+                    #     "Error when deleting merged files"
 
         except pte.RegexMatchError:
             print("Regex match error. Invalid URL.")
@@ -181,8 +174,8 @@ class DownloaderGUI:
             print("Video is unavailable.")
         except pte.PytubeError as e:
             print(f"A Pytube error occurred: {e}")
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+        # except Exception as e:
+        #    print(f"An unexpected error occurred: {e}")
 
     def on_progress(self, stream, chunk, bytes_remaining):
         total_size = stream.filesize
@@ -196,7 +189,6 @@ class DownloaderGUI:
 
     def on_finish(self):
         self.progress_label.configure(text="Finished downloading and converting!")
-        lambda: self.save_file()
 
     def shortcut(self, event):
         if event.state == 4 and event.keysym == "Return":
