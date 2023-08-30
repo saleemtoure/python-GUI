@@ -1,3 +1,5 @@
+from email.mime import image
+from logging import root
 import os
 import ffmpeg
 from pytube import YouTube
@@ -6,13 +8,18 @@ from moviepy.editor import AudioFileClip
 import tkinter as tk
 from tkinter import ttk, messagebox
 import tkinter.filedialog
+from PIL import ImageTk, Image
+from urllib.request import urlopen
 
 
 class DownloaderGUI:
     def __init__(self):
+        self.red_color = "#a83434"
+        self.thumbnail_url = ""
+
         self.root = tk.Tk()
         self.root.title("YouTube Downloader")
-        self.root.configure(bg="#a83434")
+        self.root.configure(bg=self.red_color)
         self.label = tk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
         self.label.pack(padx=10, pady=10)
 
@@ -51,7 +58,7 @@ class DownloaderGUI:
 
         self.progress = tk.IntVar()
         self.progress_label = tk.Label(
-            self.root, fg="#000000", bg="#a83434", text=f"{0}%"
+            self.root, fg="#000000", bg=self.red_color, text=f"{0}%"
         )
         self.progress_label.pack(padx=10, pady=10)
 
@@ -71,9 +78,21 @@ class DownloaderGUI:
 
     def download_media(self, video_url, media_type, video_quality):
         out_path = tkinter.filedialog.askdirectory()
+
         try:
             yt = YouTube(video_url, on_progress_callback=self.on_progress)
             video_title = yt.title
+            self.thumbnail_url = yt.thumbnail_url
+            u = urlopen(self.thumbnail_url)
+            raw_data = u.read()
+            u.close()
+            thumbnail = ImageTk.PhotoImage(data=raw_data)
+            thumbnail = Image.open(thumbnail).resize((400, 225))
+            self.image_label = tk.Label(
+                self.root, image=thumbnail, width=400, height=225
+            )
+            self.image_label.image = thumbnail
+            self.image_label.pack(pady=10)
 
             if media_type == "Audio":
                 file = yt.streams.get_audio_only()
@@ -93,12 +112,14 @@ class DownloaderGUI:
                 file = yt.streams.filter(
                     res="720p", mime_type="video/mp4", progressive=True
                 ).first()
-                file.download(filename=f"{video_title}(720p).mp4")
+                file.download(filename=f"{video_title}(720p).mp4", output_path=out_path)
                 self.on_finish()
 
             else:
-                yt.streams.get_audio_only().download(filename="audio.mp3")
-                audio = ffmpeg.input("audio.mp3")
+                yt.streams.get_audio_only().download(
+                    filename="audio.mp3", output_path=out_path
+                )
+                audio = ffmpeg.input(f"{out_path}/audio.mp3")
                 if video_quality == "Highest":
                     yt = YouTube(video_url, on_progress_callback=self.on_progress)
                     file = (
@@ -107,16 +128,18 @@ class DownloaderGUI:
                         .desc()
                         .first()
                     )
-                    file.download(filename="video.mp4")
+                    file.download(filename="video.mp4", output_path=out_path)
 
-                    video = ffmpeg.input("video.mp4")
+                    video = ffmpeg.input(f"{out_path}/video.mp4")
                     ffmpeg.concat(video, audio, v=1, a=1).output(
                         f"{video_title}({yt.streams.filter(adaptive=True).order_by('resolution').desc().first().resolution}).mp4"
                     ).run(overwrite_output=True)
 
-                    if os.path.exists("video.mp4") and os.path.exists("audio.mp3"):
-                        os.remove("video.mp4")
-                        os.remove("audio.mp3")
+                    if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
+                        f"{out_path}/audio.mp3"
+                    ):
+                        os.remove(f"{out_path}/video.mp4")
+                        os.remove(f"{out_path}/audio.mp3")
                         self.on_finish()
                     else:
                         "Error when deleting merged files"
@@ -131,17 +154,19 @@ class DownloaderGUI:
                         .desc()
                         .first()
                     )
-                    file.download(filename="video.mp4")
+                    file.download(filename="video.mp4", output_path=out_path)
 
-                    video = ffmpeg.input("video.mp4")
+                    video = ffmpeg.input(f"{out_path}/video.mp4")
 
                     ffmpeg.concat(video, audio, v=1, a=1).output(
                         f"{video_title}(1080p).mp4"
                     ).run(overwrite_output=True)
 
-                    if os.path.exists("video.mp4") and os.path.exists("audio.mp3"):
-                        os.remove("video.mp4")
-                        os.remove("audio.mp3")
+                    if os.path.exists(f"{out_path}/video.mp4") and os.path.exists(
+                        f"{out_path}/audio.mp3"
+                    ):
+                        os.remove(f"{out_path}/video.mp4")
+                        os.remove(f"{out_path}/audio.mp3")
                         self.on_finish()
                     else:
                         "Error when deleting merged files"
