@@ -3,7 +3,7 @@ from pytube import YouTube
 import pytube.exceptions as pte
 from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
-from tkinter import NORMAL, ttk, messagebox
+from tkinter import NORMAL, ttk, messagebox, filedialog
 
 
 class DownloaderGUI:
@@ -69,6 +69,7 @@ class DownloaderGUI:
             return "Audio", None
 
     def download_media(self, video_url, media_type, video_quality):
+        out_path = filedialog.askdirectory()
         try:
             yt = YouTube(video_url)
             video_title = yt.title
@@ -79,7 +80,7 @@ class DownloaderGUI:
                 file.download()
 
                 audio_mp4_file = AudioFileClip(f"{file.title}.mp4")
-                audio_mp4_file.write_audiofile(f"{file.title}.mp3")
+                audio_mp4_file.write_audiofile(f"{out_path}/{file.title}.mp3")
 
                 if os.path.exists(f"{file.title}.mp4"):
                     os.remove(f"{file.title}.mp4")
@@ -92,7 +93,7 @@ class DownloaderGUI:
                 file = yt.streams.filter(
                     res="720p", mime_type="video/mp4", progressive=True
                 ).first()
-                file.download(filename=f"{video_title}(720p).mp4")
+                file.download(filename=f"{out_path}/{video_title}(720p).mp4")
                 self.on_finish()
 
             else:
@@ -114,7 +115,7 @@ class DownloaderGUI:
                     video = VideoFileClip("video.mp4")
                     video.audio = audio
                     video.write_videofile(
-                        f"{video_title}({yt.streams.filter(adaptive=True).order_by('resolution').desc().first().resolution}).mp4"
+                        f"{out_path}/{video_title}({yt.streams.filter(adaptive=True).order_by('resolution').desc().first().resolution}).mp4"
                     )
 
                     if os.path.exists(f"video.mp4") and os.path.exists("audio.mp3"):
@@ -139,7 +140,7 @@ class DownloaderGUI:
 
                     video = VideoFileClip("video.mp4")
                     video.audio = audio
-                    video.write_videofile(f"{video_title}(1080p).mp4")
+                    video.write_videofile(f"{out_path}/{video_title}(1080p).mp4")
 
                     if os.path.exists(f"video.mp4") and os.path.exists("audio.mp3"):
                         os.remove("video.mp4")
