@@ -5,10 +5,6 @@ from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
 from tkinter import NORMAL, ttk, messagebox
 
-import tkinter.filedialog
-from PIL import ImageTk, Image
-from urllib.request import urlopen
-
 
 class DownloaderGUI:
     def __init__(self):
@@ -76,11 +72,6 @@ class DownloaderGUI:
         try:
             yt = YouTube(video_url)
             video_title = yt.title
-            # data = urlopen(yt.thumbnail_url)
-            # thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
-            # self.img = ImageTk.PhotoImage(thumbnail)
-            # self.image_label = tk.Label(self.root, image=self.img, bg=self.red_color)
-            # self.image_label.pack(pady=10)
 
             if media_type == "Audio":
                 yt = YouTube(video_url, on_progress_callback=self.on_progress)
