@@ -8,14 +8,11 @@ from tkinter import NORMAL, ttk, messagebox
 import tkinter.filedialog
 from PIL import ImageTk, Image
 from urllib.request import urlopen
-import shutil
 
 
 class DownloaderGUI:
     def __init__(self):
         self.red_color = "#a83434"
-        self.thumbnail_url = ""
-
         self.root = tk.Tk()
         self.root.title("YouTube Downloader")
         self.root.configure(bg=self.red_color)
@@ -55,7 +52,7 @@ class DownloaderGUI:
         )
         self.download_button.pack(padx=10, pady=10)
 
-        self.progress = tk.IntVar()
+        self.progress = tk.IntVar(value=0)
         self.progress_label = tk.Label(
             self.root, fg="#000000", bg=self.red_color, text=f"{0}%"
         )
@@ -77,16 +74,16 @@ class DownloaderGUI:
 
     def download_media(self, video_url, media_type, video_quality):
         try:
-            yt = YouTube(video_url, on_progress_callback=self.on_progress)
+            yt = YouTube(video_url)
             video_title = yt.title
-            self.thumbnail_url = yt.thumbnail_url
-            data = urlopen(self.thumbnail_url)
-            thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
-            img = ImageTk.PhotoImage(thumbnail)
-            self.image_label = tk.Label(self.root, image=img, bg=self.red_color)
-            self.image_label.pack(pady=10)
+            # data = urlopen(yt.thumbnail_url)
+            # thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
+            # self.img = ImageTk.PhotoImage(thumbnail)
+            # self.image_label = tk.Label(self.root, image=self.img, bg=self.red_color)
+            # self.image_label.pack(pady=10)
 
             if media_type == "Audio":
+                yt = YouTube(video_url, on_progress_callback=self.on_progress)
                 file = yt.streams.get_audio_only()
                 file.download()
 
@@ -108,18 +105,20 @@ class DownloaderGUI:
                 self.on_finish()
 
             else:
-                yt.streams.get_audio_only().download(filename="audio.mp3")
+                yt.streams.get_audio_only().download(
+                    filename="audio.mp3", skip_existing=False
+                )
                 audio = CompositeAudioClip([AudioFileClip("audio.mp3")])
+
                 if video_quality == "Highest":
-                    yt = YouTube(video_url)
+                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
                     file = (
                         yt.streams.filter(adaptive=True)
                         .order_by("resolution")
                         .desc()
                         .first()
                     )
-                    yt.register_on_progress_callback(self.on_progress)
-                    file.download(filename="video.mp4")
+                    file.download(filename="video.mp4", skip_existing=False)
 
                     video = VideoFileClip("video.mp4")
                     video.audio = audio
@@ -135,7 +134,7 @@ class DownloaderGUI:
                         "Error when deleting merged files"
 
                 elif video_quality == "1080p":
-                    yt = YouTube(video_url)
+                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
                     file = (
                         yt.streams.filter(
                             res="1080p", mime_type="video/mp4", adaptive=True
@@ -144,8 +143,8 @@ class DownloaderGUI:
                         .desc()
                         .first()
                     )
-                    yt.register_on_progress_callback(self.on_progress)
-                    file.download(filename="video.mp4")
+
+                    file.download(filename="video.mp4", skip_existing=False)
 
                     video = VideoFileClip("video.mp4")
                     video.audio = audio
