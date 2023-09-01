@@ -3,18 +3,18 @@ from pytube import YouTube
 import pytube.exceptions as pte
 from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import NORMAL, ttk, messagebox
 
-# import tkinter.filedialog
-# from PIL import ImageTk, Image
-# from urllib.request import urlopen
-# import shutil
+import tkinter.filedialog
+from PIL import ImageTk, Image
+from urllib.request import urlopen
+import shutil
 
 
 class DownloaderGUI:
     def __init__(self):
         self.red_color = "#a83434"
-        # self.thumbnail_url = ""
+        self.thumbnail_url = ""
 
         self.root = tk.Tk()
         self.root.title("YouTube Downloader")
@@ -23,8 +23,8 @@ class DownloaderGUI:
         self.label.pack(padx=10, pady=10)
 
         self.url_box = tk.Entry(self.root, width=60, font=("Arial", 16))
-        self.url_box.bind("<KeyPress>", self.shortcut)
         self.url_box.insert(0, "Paste your URL here")
+        self.clicked = self.url_box.bind("<Button-1>", self.click)
         self.url_box.pack(padx=10, pady=10)
 
         self.checkState = tk.StringVar(self.root, "Download Video")
@@ -79,12 +79,12 @@ class DownloaderGUI:
         try:
             yt = YouTube(video_url, on_progress_callback=self.on_progress)
             video_title = yt.title
-            # self.thumbnail_url = yt.thumbnail_url
-            # data = urlopen(self.thumbnail_url)
-            # thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
-            # img = ImageTk.PhotoImage(thumbnail)
-            # self.image_label = tk.Label(self.root, image=img, bg=self.red_color)
-            # self.image_label.pack(pady=10)
+            self.thumbnail_url = yt.thumbnail_url
+            data = urlopen(self.thumbnail_url)
+            thumbnail = Image.open(data).resize((400, 224), Image.LANCZOS)
+            img = ImageTk.PhotoImage(thumbnail)
+            self.image_label = tk.Label(self.root, image=img, bg=self.red_color)
+            self.image_label.pack(pady=10)
 
             if media_type == "Audio":
                 file = yt.streams.get_audio_only()
@@ -134,7 +134,7 @@ class DownloaderGUI:
                         "Error when deleting merged files"
 
                 elif video_quality == "1080p":
-                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                    yt = YouTube(video_url)
                     file = (
                         yt.streams.filter(
                             res="1080p", mime_type="video/mp4", adaptive=True
@@ -143,6 +143,7 @@ class DownloaderGUI:
                         .desc()
                         .first()
                     )
+                    yt.register_on_progress_callback(self.on_progress)
                     file.download(filename="video.mp4")
 
                     video = VideoFileClip("video.mp4")
@@ -182,9 +183,10 @@ class DownloaderGUI:
     def on_finish(self):
         self.progress_label.configure(text="Finished downloading and converting!")
 
-    def shortcut(self, event):
-        if event.state == 4 and event.keysym == "Return":
-            self.download_media
+    def click(self, event):
+        self.url_box.configure(state=NORMAL)
+        self.url_box.delete(0, tk.END)
+        self.url_box.unbind("<Button-1>", self.clicked)
 
     def onClosing(self):
         if messagebox.askyesno(title="Quit?", message="Do you really want to quit"):
