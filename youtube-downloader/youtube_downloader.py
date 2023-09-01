@@ -111,13 +111,14 @@ class DownloaderGUI:
                 yt.streams.get_audio_only().download(filename="audio.mp3")
                 audio = CompositeAudioClip([AudioFileClip("audio.mp3")])
                 if video_quality == "Highest":
-                    yt = YouTube(video_url, on_progress_callback=self.on_progress)
+                    yt = YouTube(video_url)
                     file = (
                         yt.streams.filter(adaptive=True)
                         .order_by("resolution")
                         .desc()
                         .first()
                     )
+                    yt.register_on_progress_callback(self.on_progress)
                     file.download(filename="video.mp4")
 
                     video = VideoFileClip("video.mp4")
