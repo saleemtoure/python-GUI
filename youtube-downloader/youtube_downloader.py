@@ -45,6 +45,11 @@ class DownloaderGUI:
         )
         self.checkbox.pack(padx=10, pady=10)
 
+        self.path_label = tk.Label(
+            self.root, fg="#000000", bg=self.red_color, text=f"Downloading to: Desktop"
+        )
+        self.path_label.pack(padx=10, pady=10)
+
         self.download_button = tk.Button(
             self.root,
             text="Download File",
@@ -79,10 +84,19 @@ class DownloaderGUI:
 
     def download_media(self, video_url, media_type, video_quality):
         out_path = ""
+        temp_path = ""
         if self.checkbox_state.get() == 0:
             out_path = desktop_path
         else:
-            out_path = filedialog.askdirectory()
+            temp_path = filedialog.askdirectory()
+            if temp_path != "":  # Empty string
+                out_path = temp_path
+                self.path_label.configure(text=f"Downloading to: {out_path}")
+            else:
+                out_path = desktop_path
+                self.path_label.configure(
+                    text=f"No custom path chosen \n Downloading to: Desktop"
+                )
         try:
             yt = YouTube(video_url)
             video_title = yt.title
