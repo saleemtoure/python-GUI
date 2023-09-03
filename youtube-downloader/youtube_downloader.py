@@ -12,11 +12,14 @@ desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
 class DownloaderGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("YouTube Downloader")
-        self.label = tk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
+        self.root.maxsize(800, 450)
+        self.root.minsize(800, 250)
+
+        self.root.title("YouTube Downloader - github.com/saleemtoure")
+        self.label = ttk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
         self.label.pack(padx=10, pady=10)
 
-        self.url_box = tk.Entry(self.root, width=60, font=("Arial", 16))
+        self.url_box = ttk.Entry(self.root, width=60, font=("Arial", 16))
         self.url_box.insert(0, "Paste your URL here")
         self.clicked = self.url_box.bind("<Button-1>", self.click)
         self.url_box.pack(padx=10, pady=10)
@@ -44,13 +47,13 @@ class DownloaderGUI:
         )
         self.checkbox.pack(padx=10, pady=10)
 
-        self.path_label = tk.Label(self.root, text=f"Downloading to: Desktop")
+        self.path_label = ttk.Label(self.root, text=f"Downloading to: Desktop")
         self.path_label.pack(padx=10, pady=10)
 
-        self.download_button = tk.Button(
+        self.download_button = ttk.Button(
             self.root,
             text="Download File",
-            font=("Arial", 18),
+            # font=("Arial", 18),
             command=lambda: self.download_media(
                 self.url_box.get(),
                 self.dropdown_select()[0],
@@ -60,7 +63,7 @@ class DownloaderGUI:
         self.download_button.pack(padx=10, pady=10)
 
         self.progress = tk.IntVar(value=0)
-        self.progress_label = tk.Label(self.root, text=f"{0}%")
+        self.progress_label = ttk.Label(self.root, text=f"{0}%")
         self.progress_label.pack(padx=10, pady=10)
 
         self.root.protocol("WM_DELETE_WINDOW", self.onClosing)
