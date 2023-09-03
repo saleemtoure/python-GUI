@@ -12,12 +12,19 @@ desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
 class DownloaderGUI:
     def __init__(self):
         self.root = tk.Tk()
+        sv_ttk.set_theme("dark")
+
         self.root.maxsize(800, 450)
         self.root.minsize(800, 250)
 
         self.root.title("YouTube Downloader - github.com/saleemtoure")
         self.label = ttk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
         self.label.pack(padx=10, pady=10)
+
+        self.theme_button = ttk.Button(
+            self.root, text="Toggle Dark Mode", command=sv_ttk.toggle_theme
+        )
+        self.theme_button.pack(padx=10, pady=10)
 
         self.url_box = ttk.Entry(self.root, width=60, font=("Arial", 16))
         self.url_box.insert(0, "Paste your URL here")
@@ -67,7 +74,6 @@ class DownloaderGUI:
         self.progress_label.pack(padx=10, pady=10)
 
         self.root.protocol("WM_DELETE_WINDOW", self.onClosing)
-        sv_ttk.set_theme("dark")
         self.root.mainloop()
 
     def dropdown_select(self):
