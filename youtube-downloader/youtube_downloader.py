@@ -5,6 +5,8 @@ from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
 from tkinter import NORMAL, ttk, messagebox, filedialog
 
+desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
+
 
 class DownloaderGUI:
     def __init__(self):
@@ -35,6 +37,13 @@ class DownloaderGUI:
         )
         self.dropdown.current(1)
         self.dropdown.pack(padx=10, pady=10)
+
+        self.checkbox_state = tk.IntVar()
+        self.checkbox = tk.Checkbutton(
+            text="Choose where to save file (Default: Desktop)",
+            variable=self.checkbox_state,
+        )
+        self.checkbox.pack(padx=10, pady=10)
 
         self.download_button = tk.Button(
             self.root,
@@ -69,7 +78,11 @@ class DownloaderGUI:
             return "Audio", None
 
     def download_media(self, video_url, media_type, video_quality):
-        out_path = filedialog.askdirectory()
+        out_path = ""
+        if self.checkbox_state.get() == 0:
+            out_path = desktop_path
+        else:
+            out_path = filedialog.askdirectory()
         try:
             yt = YouTube(video_url)
             video_title = yt.title
