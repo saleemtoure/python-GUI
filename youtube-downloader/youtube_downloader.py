@@ -4,16 +4,15 @@ import pytube.exceptions as pte
 from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
 from tkinter import NORMAL, ttk, messagebox, filedialog
+import sv_ttk
 
 desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
 
 
 class DownloaderGUI:
     def __init__(self):
-        self.red_color = "#a83434"
         self.root = tk.Tk()
         self.root.title("YouTube Downloader")
-        self.root.configure(bg=self.red_color)
         self.label = tk.Label(self.root, text="YouTube Downloader", font=("Arial", 19))
         self.label.pack(padx=10, pady=10)
 
@@ -45,9 +44,7 @@ class DownloaderGUI:
         )
         self.checkbox.pack(padx=10, pady=10)
 
-        self.path_label = tk.Label(
-            self.root, fg="#000000", bg=self.red_color, text=f"Downloading to: Desktop"
-        )
+        self.path_label = tk.Label(self.root, text=f"Downloading to: Desktop")
         self.path_label.pack(padx=10, pady=10)
 
         self.download_button = tk.Button(
@@ -63,12 +60,11 @@ class DownloaderGUI:
         self.download_button.pack(padx=10, pady=10)
 
         self.progress = tk.IntVar(value=0)
-        self.progress_label = tk.Label(
-            self.root, fg="#000000", bg=self.red_color, text=f"{0}%"
-        )
+        self.progress_label = tk.Label(self.root, text=f"{0}%")
         self.progress_label.pack(padx=10, pady=10)
 
         self.root.protocol("WM_DELETE_WINDOW", self.onClosing)
+        sv_ttk.set_theme("dark")
         self.root.mainloop()
 
     def dropdown_select(self):
