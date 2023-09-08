@@ -63,11 +63,15 @@ class ListGUI:
             f.close()
 
     def load(self):
-        f = open(f"{filedialog.askopenfilename()}", "r")
-        self.reset()
-        for line in f:
-            self.listbox.insert("", "end", text=line)
-        f.close()
+        file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
+        if file_path == "":
+            pass
+        else:
+            f = open(file_path, "r")
+            self.reset()
+            for line in f:
+                self.listbox.insert("", "end", text=line)
+            f.close()
 
     def reset(self):
         for task in self.listbox.get_children():
