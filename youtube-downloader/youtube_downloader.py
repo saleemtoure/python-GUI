@@ -99,7 +99,9 @@ def download_media(video_url, media_type, video_quality):
                     .desc()
                     .first()
                 )
-                file.download(filename="video.mp4", skip_existing=False)
+                file.download(
+                    filename="video.mp4", output_path=out_path, skip_existing=False
+                )
 
                 video = VideoFileClip("video.mp4")
                 video.audio = audio
@@ -125,7 +127,9 @@ def download_media(video_url, media_type, video_quality):
                     .first()
                 )
 
-                file.download(filename="video.mp4", skip_existing=False)
+                file.download(
+                    filename="video.mp4", output_path=out_path, skip_existing=False
+                )
 
                 video = VideoFileClip("video.mp4")
                 video.audio = audio
