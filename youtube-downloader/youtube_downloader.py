@@ -1,10 +1,12 @@
 import os
+from numpy import pad
 from pytube import YouTube
 import pytube.exceptions as pte
 from moviepy.editor import AudioFileClip, VideoFileClip, CompositeAudioClip
 import tkinter as tk
 from tkinter import NORMAL, ttk, messagebox, filedialog
 import sv_ttk
+
 
 desktop_path = os.path.normpath(os.path.expanduser("~/Desktop"))
 
