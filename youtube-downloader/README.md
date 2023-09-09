@@ -7,10 +7,7 @@ A simple YouTube GUI video downloader
 
 ## Screenshots
 
-![Dark Mode Screenshot](https://github.com/saleemtoure/python-GUI/blob/main/youtube-downloader/Dark_mode.png)
-
-![Light Mode Screenshot](https://github.com/saleemtoure/python-GUI/blob/main/youtube-downloader/Light_mode.png)
-
+![Screenshots](https://github.com/saleemtoure/python-GUI/blob/main/youtube-downloader/screenshots.png)
 
 ## Features
 
